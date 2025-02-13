@@ -1,0 +1,9 @@
+{
+  "vnt_config": {
+    "device_id": "d1552ec6-c205-44c5-9d8a-72b8f4dd2c77",
+    "name": "test",
+    "server_address_str": "vnt.lers.site:29872",
+    "stun_server": null,
+    "token": "lers1"
+  }
+}
