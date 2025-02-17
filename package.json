@@ -1,7 +1,7 @@
 {
   "name": "light-p2p",
   "private": true,
-  "version": "0.1.2",
+  "version": "0.1.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,8 +12,10 @@
   "dependencies": {
     "@ant-design/icons": "^5.6.1",
     "@tauri-apps/api": "^2",
-    "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/plugin-fs": "^2.2.0",
+    "@tauri-apps/plugin-opener": "^2.2.5",
     "@tauri-apps/plugin-store": "^2.2.0",
+    "@tauri-apps/plugin-upload": "^2.2.1",
     "antd": "^5.23.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

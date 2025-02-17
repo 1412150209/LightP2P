@@ -1,6 +1,7 @@
 import {Layout, Tabs, theme} from "antd";
 import NetworkingPage from "../pages/NetworkingPage.tsx";
 import AboutPage from "../pages/AboutPage.tsx";
+import ToolPage from "../pages/ToolPage.tsx";
 
 const {Content} = Layout
 
@@ -12,11 +13,11 @@ function ContentComponent() {
             label: <p style={{userSelect: "none", marginTop: 0, marginBottom: 0}}>组网</p>,
             children: <NetworkingPage/>
         },
-        // todo: 添加工具页面
-        // {
-        //     key: '2',
-        //     label: <p style={{userSelect: "none", marginTop: 0, marginBottom: 0}}>工具</p>
-        // },
+        {
+            key: '2',
+            label: <p style={{userSelect: "none", marginTop: 0, marginBottom: 0}}>工具</p>,
+            children: <ToolPage/>
+        },
         {
             key: '3',
             label: <p style={{userSelect: "none", marginTop: 0, marginBottom: 0}}>关于</p>,

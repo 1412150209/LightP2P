@@ -1,11 +1,10 @@
 import {Avatar, Button, Card, Col, Drawer, Flex, Input, List, message, Row, Select, Space, Typography} from "antd";
 import {useCallback, useEffect, useState} from "react";
-import {Config, get_config} from "../abstract/LocalConfig.ts";
+import {Config, get_config, set_config} from "../abstract/LocalConfig.ts";
 import {PoweroffOutlined} from "@ant-design/icons";
 import {get_running_status, get_user_list, get_virtual_ip, start_vnt, stop_vnt, User} from "../abstract/VntControl.ts";
 import {listen} from "@tauri-apps/api/event";
 import {useDebounce} from "../abstract/ReactTool.ts";
-import {invoke} from "@tauri-apps/api/core";
 import {get_avatar, Styles} from "../abstract/AvatarBuild.ts";
 
 function NetworkingPage() {
@@ -126,11 +125,10 @@ function NetworkingPage() {
 
 
     /**
-     * 设置配置
-     * @param config
+     * 防抖设置配置
      */
-    const set_config = (config: Config) => {
-        invoke("set_config", {"config": config})
+    const set_config_debounced = useCallback(useDebounce((config: Config) => {
+        set_config(config)
             .then(() => {
                 setConfig(config)
             })
@@ -138,12 +136,8 @@ function NetworkingPage() {
                 message.error("设置配置失败")
                 console.error(e)
             })
-    }
+    }, 800), []);
 
-    /**
-     * 防抖设置配置
-     */
-    const set_config_debounced = useCallback(useDebounce(set_config, 500), []);
 
     // 控制面板
     function ControlPanel() {
@@ -263,7 +257,6 @@ function NetworkingPage() {
             for (let i = 0; i < name.length; i++) {
                 hash = name.charCodeAt(i) + (hash << 5) - hash;
             }
-            console.log(get_avatar(style, name))
             return (
                 <Avatar
                     src={get_avatar(style, name)}
@@ -286,7 +279,7 @@ function NetworkingPage() {
                         <Space>
                             {GetAvatar(user.name)}
                             <Row>
-                                <Col span={12}>
+                                <Col span={24}>
                                     <Typography.Text style={{margin: 0}}>
                                         {user.name}
                                     </Typography.Text>

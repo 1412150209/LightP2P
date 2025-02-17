@@ -4,12 +4,14 @@ use crate::tools::{
     users::get_user_list,
     vnt_handler::{get_running_status, get_virtual_ip, start_vnt, stop_vnt},
     ExternalFilePosition, Status,
+    command::{child_kill, command_spawn, ChildrenManager}
 };
 use log::error;
+use std::collections::HashMap;
 use std::fs::File;
 use std::path::Path;
 use std::sync::atomic::AtomicBool;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
@@ -22,6 +24,8 @@ mod tools;
 
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_upload::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
@@ -101,6 +105,9 @@ pub fn run() {
             }));
             Ok(())
         })
+        .manage(ChildrenManager {
+            children: Arc::new(Mutex::new(HashMap::new())),
+        })
         .invoke_handler(tauri::generate_handler![
             start_vnt,
             stop_vnt,
@@ -108,7 +115,9 @@ pub fn run() {
             get_config,
             set_config,
             get_running_status,
-            get_virtual_ip
+            get_virtual_ip,
+            child_kill,
+            command_spawn
         ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
@@ -140,6 +149,10 @@ pub fn run() {
                         Err(e) => {
                             error!("Failed to read status: {}", e);
                         }
+                    }
+                    // 停止所有子进程
+                    for (_, child) in x.state::<ChildrenManager>().children.lock().unwrap().iter_mut() {
+                        let _ = child.kill();
                     }
                 }
                 _ => {}

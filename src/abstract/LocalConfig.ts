@@ -11,3 +11,7 @@ export type Config = {
 export async function get_config(): Promise<Config> {
     return await invoke("get_config") as Config;
 }
+
+export async function set_config(config: Config): Promise<void> {
+    return await invoke("set_config", {"config": config})
+}

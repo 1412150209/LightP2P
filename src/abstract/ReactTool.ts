@@ -32,3 +32,32 @@ export function useDebounce<T extends (...args: any[]) => any>(
         [func, delay]
     );
 }
+
+// 节流函数类型定义
+type ThrottledFunction<T extends any[]> = (...args: T) => void;
+
+export function useThrottle<T extends any[]>(
+    func: (...args: T) => void,
+    delay: number = 300
+): ThrottledFunction<T> {
+    let lastExecTime = 0;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    return (...args: T) => {
+        const now = Date.now();
+        const timeSinceLastExec = now - lastExecTime;
+
+        // 如果距离上次执行时间超过 delay，立即执行
+        if (timeSinceLastExec >= delay) {
+            func(...args);
+            lastExecTime = now;
+        } else {
+            // 否则设置定时器，在剩余时间后执行
+            if (timeoutId) clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                func(...args);
+                lastExecTime = Date.now();
+            }, delay - timeSinceLastExec);
+        }
+    };
+}

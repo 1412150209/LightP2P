@@ -35,5 +35,6 @@ anyhow = "1"
 whoami = "1"
 uuid = { version = "1", features = ["v4"] }
 log = "0.4.25"
-env_logger = "0.11.6"
-
+flexi_logger = { version = "0" }
+tauri-plugin-upload = "2"
+tauri-plugin-fs = "2"

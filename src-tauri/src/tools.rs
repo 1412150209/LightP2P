@@ -1,3 +1,4 @@
+pub(crate) mod command;
 pub(crate) mod config_builder;
 pub(crate) mod users;
 pub(crate) mod vnt_handler;
