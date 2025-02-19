@@ -1,14 +1,14 @@
 export enum Styles {
     adventurer = "adventurer",
     avataaars = "avataaars",
-    "Thumbs" = "Thumbs",
-    "Pixel Art" = "Pixel Art",
-    Personas = "Personas",
-    Notionists = "Notionists",
-    Lorelei = "Lorelei",
-    Initials = "Initials",
-    Glass = "Glass",
-    Croodles = "Croodles",
+    "Thumbs" = "thumbs",
+    "Pixel Art" = "pixel-art",
+    Personas = "personas",
+    Notionists = "notionists",
+    Lorelei = "lorelei",
+    Initials = "initials",
+    Glass = "glass",
+    Croodles = "croodles",
 }
 
 export function get_avatar(style: Styles, seed: string) {

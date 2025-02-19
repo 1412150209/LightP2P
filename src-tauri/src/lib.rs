@@ -1,10 +1,10 @@
 use crate::errors::ProgramError;
 use crate::tools::{
+    command::{child_kill, command_spawn, ChildrenManager},
     config_builder::{get_config, set_config, Config},
     users::get_user_list,
     vnt_handler::{get_running_status, get_virtual_ip, start_vnt, stop_vnt},
     ExternalFilePosition, Status,
-    command::{child_kill, command_spawn, ChildrenManager}
 };
 use log::error;
 use std::collections::HashMap;
@@ -151,7 +151,13 @@ pub fn run() {
                         }
                     }
                     // 停止所有子进程
-                    for (_, child) in x.state::<ChildrenManager>().children.lock().unwrap().iter_mut() {
+                    for (_, child) in x
+                        .state::<ChildrenManager>()
+                        .children
+                        .lock()
+                        .unwrap()
+                        .iter_mut()
+                    {
                         let _ = child.kill();
                     }
                 }

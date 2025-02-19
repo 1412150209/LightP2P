@@ -30,7 +30,7 @@ function NetworkingPage() {
     const [nat_type, setNatType] = useState<string>("")
 
     // 头像风格
-    const [style, setStyle] = useState<Styles>(Styles.Lorelei)
+    const [style, setStyle] = useState<Styles>(Styles.Thumbs)
 
     // 挂载执行
     useEffect(() => {
@@ -55,7 +55,8 @@ function NetworkingPage() {
         // 挂载时同步成员列表
         get_user_list()
             .then((users) => {
-                setUsers(users)
+                if (status)
+                    setUsers(users)
             })
             .catch((e) => {
                 message.error("读取成员列表失败")
@@ -203,13 +204,32 @@ function NetworkingPage() {
         function SettingsPanel() {
             return (
                 <Space style={{marginLeft: "3vw"}} size={"small"}>
-                    <Flex vertical>
-                        <Typography.Text type={"secondary"}>
-                            昵称: {config.name}
-                        </Typography.Text>
-                        <Typography.Text type={"secondary"}>
-                            组: {config.token}
-                        </Typography.Text>
+                    <Flex vertical style={{minWidth: "32vw"}}>
+                        {/*防止过长*/}
+                        <div style={{
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            display: '-webkit-box',
+                            WebkitLineClamp: '2',
+                            WebkitBoxOrient: 'vertical',
+                        }}>
+                            <Typography.Text
+                                type={"secondary"}>
+                                昵称: {config.name}
+                            </Typography.Text>
+                        </div>
+
+                        <div style={{
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            display: '-webkit-box',
+                            WebkitLineClamp: '2',
+                            WebkitBoxOrient: 'vertical',
+                        }}>
+                            <Typography.Text type={"secondary"}>
+                                组: {config.token}
+                            </Typography.Text>
+                        </div>
                         {status ?
                             <>
                                 <Typography.Text copyable={{
@@ -248,6 +268,15 @@ function NetworkingPage() {
 
     // 成员面板
     function MembersPanel() {
+        const presetColors = [
+            '#FF6B6B',
+            '#4ECDC4',
+            '#45B7D1',
+            '#96CEB4',
+            '#FFEEAD',
+            '#FF9999'
+        ];
+
         // 获取头像
         function GetAvatar(name: string) {
             if (name.length == 0) {
@@ -259,6 +288,7 @@ function NetworkingPage() {
             }
             return (
                 <Avatar
+                    style={{backgroundColor: presetColors[Math.abs(hash) % presetColors.length]}}
                     src={get_avatar(style, name)}
                     size={"large"}
                     draggable={"false"}
@@ -280,9 +310,17 @@ function NetworkingPage() {
                             {GetAvatar(user.name)}
                             <Row>
                                 <Col span={24}>
-                                    <Typography.Text style={{margin: 0}}>
-                                        {user.name}
-                                    </Typography.Text>
+                                    <div style={{
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        display: '-webkit-box',
+                                        WebkitLineClamp: '1',
+                                        WebkitBoxOrient: 'vertical',
+                                    }}>
+                                        <Typography.Text style={{margin: 0}}>
+                                            {user.name}
+                                        </Typography.Text>
+                                    </div>
                                 </Col>
                                 <Col>
                                     <Space>

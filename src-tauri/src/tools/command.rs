@@ -1,6 +1,5 @@
-use log::error;
 use std::collections::HashMap;
-use std::io::Read;
+use std::io::{BufRead, BufReader};
 use std::os::windows::process::CommandExt;
 use std::process::{Child, Command};
 use std::sync::{Arc, Mutex};
@@ -34,9 +33,12 @@ pub(crate) fn command_spawn(
     manager: State<ChildrenManager>,
 ) -> Result<u32, ()> {
     let mut binding = Command::new(command);
-    let command = binding.args(args).stderr(std::process::Stdio::piped());
+    let command = binding.args(args);
+    command.stderr(std::process::Stdio::piped());
+    // 隐藏状态下截取标准输出，否则仅截取错误输出
     if hide {
         command.creation_flags(0x08000000);
+        command.stdout(std::process::Stdio::piped());
     }
     let mut child = match command.spawn() {
         Ok(child) => child,
@@ -52,31 +54,30 @@ pub(crate) fn command_spawn(
         }
     };
     let pid = child.id();
-    let mut stderr = child.stderr.take().unwrap();
+    let stderr = child.stderr.take().unwrap();
+    // 创建一个线程，用于读取子进程的标准输出
+    if hide {
+        let stdout = child.stdout.take().unwrap();
+        let on_event = on_event.clone();
+        std::thread::spawn(move || {
+            let mut reader = BufReader::new(stdout).lines();
+            while let Some(Ok(line)) = reader.next() {
+                // 处理每一行输出
+                on_event.send(CommandEvent::Stdout(line)).unwrap();
+            }
+        });
+    }
     manager.children.lock().unwrap().insert(pid, child);
     let children = manager.children.clone();
-    // 创建一个线程，用于读取子进程的标准输出和错误输出
+    // 创建一个线程，用于读取子进程的错误输出
     std::thread::spawn(move || {
-        let mut buffer = [0; 1024];
+        let mut reader = BufReader::new(stderr).lines();
 
-        loop {
-            match stderr.read(&mut buffer) {
-                Ok(0) => {
-                    // 子进程已经退出，关闭标准输出和错误输出
-                    break;
-                }
-                Ok(n) => {
-                    // 将读取的数据转换为字符串并发送到前端
-                    let output = String::from_utf8_lossy(&buffer[..n]).to_string();
-                    on_event.send(CommandEvent::Error(output)).unwrap();
-                }
-                Err(e) => {
-                    //读取标准输出和错误输出时发生错误，关闭标准输出
-                    on_event.send(CommandEvent::Error(e.to_string())).unwrap();
-                    break;
-                }
-            }
+        while let Some(Ok(line)) = reader.next() {
+            // 处理每一行输出
+            on_event.send(CommandEvent::Error(line)).unwrap();
         }
+
         match children.lock().unwrap().remove(&pid) {
             None => {
                 on_event
@@ -97,7 +98,6 @@ pub(crate) fn command_spawn(
                     .unwrap();
             }
         }
-        error!("test:over")
     });
     Ok(pid)
 }

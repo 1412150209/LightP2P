@@ -92,6 +92,8 @@ impl vnt::VntCallback for VntHandler {
         if let Err(e) = self.app.emit("lers://vnt/status", false) {
             error!("Failed to emit status: {}", e);
         }
+        // 清除用户列表
+        status.users.clear();
     }
 }
 
@@ -184,13 +186,14 @@ pub(crate) fn get_nat_traversal_type(app: tauri::AppHandle, vnt: Vnt) {
                 Ok(mut status) => {
                     if status.running.load(Ordering::Relaxed) {
                         let info = vnt.current_device();
-                        for user in status.users.iter_mut() {
+                        let mut new_users = status.users.clone();
+                        for user in new_users.iter_mut() {
                             match Ipv4Addr::from_str(&user.ip) {
                                 Ok(ip) => {
                                     let mut nat_traversal_type = String::from("PSP");
                                     // 判断连接模式
                                     if let Some(route) = vnt.route(&ip) {
-                                        nat_traversal_type = if route.metric == 1 {
+                                        nat_traversal_type = if route.is_p2p() {
                                             if route.protocol.is_base_tcp() {
                                                 "P2P_TCP"
                                             } else {
@@ -210,17 +213,19 @@ pub(crate) fn get_nat_traversal_type(app: tauri::AppHandle, vnt: Vnt) {
                                         }
                                         .to_string();
                                     }
-                                    if user.nat_traversal_type != nat_traversal_type {
-                                        user.nat_traversal_type = nat_traversal_type;
-                                    }
+                                    user.nat_traversal_type = nat_traversal_type;
                                 }
                                 Err(_) => {
                                     error!("Failed to parse ip: {}", user.ip);
                                 }
                             }
                         }
-                        if let Err(e) = app_clone.emit("lers://vnt/users", status.users.clone()) {
-                            error!("Failed to emit users: {}", e);
+                        // 判断用户列表是否发生变化
+                        if do_vecs_match(&new_users, &status.users) {
+                            status.users = new_users.clone();
+                            if let Err(e) = app_clone.emit("lers://vnt/users", new_users) {
+                                error!("Failed to emit users: {}", e);
+                            }
                         }
                     } else {
                         break;
