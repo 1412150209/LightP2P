@@ -2,9 +2,17 @@ import {Avatar, Button, Card, Col, Drawer, Flex, Input, List, message, Row, Sele
 import {useCallback, useEffect, useState} from "react";
 import {Config, get_config, set_config} from "../abstract/LocalConfig.ts";
 import {PoweroffOutlined} from "@ant-design/icons";
-import {get_running_status, get_user_list, get_virtual_ip, start_vnt, stop_vnt, User} from "../abstract/VntControl.ts";
+import {
+    fresh_user_list,
+    get_running_status,
+    get_user_list,
+    get_virtual_ip,
+    start_vnt,
+    stop_vnt,
+    User
+} from "../abstract/VntControl.ts";
 import {listen} from "@tauri-apps/api/event";
-import {useDebounce} from "../abstract/ReactTool.ts";
+import {useDebounce, useThrottle} from "../abstract/ReactTool.ts";
 import {get_avatar, Styles} from "../abstract/AvatarBuild.ts";
 
 function NetworkingPage() {
@@ -80,6 +88,7 @@ function NetworkingPage() {
         })
         // 监听成员列表
         const ls2 = listen<User[]>("lers://vnt/users", (users) => {
+            console.log(users.payload)
             setUsers(users.payload)
         }).catch((e) => {
             message.error("监听成员列表失败")
@@ -139,6 +148,17 @@ function NetworkingPage() {
             })
     }, 800), []);
 
+    /**
+     * 节流刷新成员列表
+     */
+    const fresh_user_list_throttle = useCallback(useThrottle(() => {
+        fresh_user_list()
+            .catch((e) => {
+                message.error("刷新成员失败")
+                console.error(e)
+            })
+    }, 1000), [])
+
 
     // 控制面板
     function ControlPanel() {
@@ -167,7 +187,7 @@ function NetworkingPage() {
             }
             setTimeout(() => {
                 setLoading(false)
-            }, 1000)
+            }, 1500)
         }
 
         // 控制按钮
@@ -203,14 +223,14 @@ function NetworkingPage() {
         // 设置面板
         function SettingsPanel() {
             return (
-                <Space style={{marginLeft: "3vw"}} size={"small"}>
-                    <Flex vertical style={{minWidth: "32vw"}}>
+                <Space size={"small"}>
+                    <Flex vertical>
                         {/*防止过长*/}
                         <div style={{
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
                             display: '-webkit-box',
-                            WebkitLineClamp: '2',
+                            WebkitLineClamp: status ? "1" : "2",
                             WebkitBoxOrient: 'vertical',
                         }}>
                             <Typography.Text
@@ -218,12 +238,11 @@ function NetworkingPage() {
                                 昵称: {config.name}
                             </Typography.Text>
                         </div>
-
                         <div style={{
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
                             display: '-webkit-box',
-                            WebkitLineClamp: '2',
+                            WebkitLineClamp: '1',
                             WebkitBoxOrient: 'vertical',
                         }}>
                             <Typography.Text type={"secondary"}>
@@ -236,18 +255,21 @@ function NetworkingPage() {
                                     tooltips: ["复制", "复制成功"],
                                     text: virtual_ip
                                 }}>
-                                    虚拟ip: {virtual_ip}
+                                    {virtual_ip}
                                 </Typography.Text>
                                 <Typography.Text type={"secondary"}>
-                                    Nat类型: {nat_type}
+                                    Nat: {nat_type}
                                 </Typography.Text>
                             </>
                             :
                             null
                         }
                     </Flex>
+
                     {status ?
-                        null
+                        <Button type={"link"} onClick={() => {
+                            fresh_user_list_throttle()
+                        }}>刷新</Button>
                         :
                         <Button type={"link"} disabled={status} onClick={() => {
                             setDrawer(true)
@@ -258,10 +280,14 @@ function NetworkingPage() {
 
         return (
             <Card style={{height: "28vh"}}>
-                <Space align={"center"}>
-                    <ControlButton/>
-                    <SettingsPanel/>
-                </Space>
+                <Row gutter={16}>
+                    <Col span={7}>
+                        <ControlButton/>
+                    </Col>
+                    <Col offset={2} span={15}>
+                        <SettingsPanel/>
+                    </Col>
+                </Row>
             </Card>
         )
     }

@@ -1,9 +1,7 @@
 use crate::errors::ProgramError;
-use crate::tools::users::User;
+use crate::tools::users::{User, _fresh_user_list};
 use crate::tools::{do_vecs_match, Status};
 use log::{error, info};
-use std::net::Ipv4Addr;
-use std::str::FromStr;
 use std::sync::atomic::Ordering;
 use std::sync::Mutex;
 use std::thread::sleep;
@@ -87,7 +85,7 @@ impl vnt::VntCallback for VntHandler {
     fn stop(&self) {
         info!("vnt stopped");
         let binding = self.app.state::<Mutex<Status>>();
-        let status = binding.lock().unwrap();
+        let mut status = binding.lock().unwrap();
         status.running.store(false, Ordering::Relaxed);
         if let Err(e) = self.app.emit("lers://vnt/status", false) {
             error!("Failed to emit status: {}", e);
@@ -165,7 +163,7 @@ pub(crate) fn get_virtual_ip(status: State<'_, Mutex<Status>>) -> Result<String,
     }
 }
 
-/// 一分钟查询一次用户打洞类型和本机nat类型
+/// 五分钟查询一次用户打洞类型和本机nat类型
 pub(crate) fn get_nat_traversal_type(app: tauri::AppHandle, vnt: Vnt) {
     let app_clone = app.clone();
     std::thread::spawn(move || {
@@ -179,52 +177,23 @@ pub(crate) fn get_nat_traversal_type(app: tauri::AppHandle, vnt: Vnt) {
         if let Err(e) = app_clone.emit("lers://vnt/nat_type", nat_type.to_string()) {
             error!("Failed to emit status: {}", e);
         }
-        // 延迟5秒，等待打洞
-        sleep(Duration::from_secs(5));
         loop {
             match status.lock() {
                 Ok(mut status) => {
                     if status.running.load(Ordering::Relaxed) {
-                        let info = vnt.current_device();
-                        let mut new_users = status.users.clone();
-                        for user in new_users.iter_mut() {
-                            match Ipv4Addr::from_str(&user.ip) {
-                                Ok(ip) => {
-                                    let mut nat_traversal_type = String::from("PSP");
-                                    // 判断连接模式
-                                    if let Some(route) = vnt.route(&ip) {
-                                        nat_traversal_type = if route.is_p2p() {
-                                            if route.protocol.is_base_tcp() {
-                                                "P2P_TCP"
-                                            } else {
-                                                "P2P"
-                                            }
-                                        } else {
-                                            let next_hop = vnt.route_key(&route.route_key());
-                                            if let Some(next_hop) = next_hop {
-                                                if info.is_gateway(&next_hop) {
-                                                    "PSP"
-                                                } else {
-                                                    "PCP"
-                                                }
-                                            } else {
-                                                "PSP"
-                                            }
-                                        }
-                                        .to_string();
+                        let new_users = status.users.clone();
+                        match _fresh_user_list(vnt.clone(), new_users) {
+                            Ok(new_users) => {
+                                // 判断用户列表是否发生变化
+                                if do_vecs_match(&new_users, &status.users) {
+                                    status.users = new_users.clone();
+                                    if let Err(e) = app_clone.emit("lers://vnt/users", new_users) {
+                                        error!("Failed to emit users: {}", e);
                                     }
-                                    user.nat_traversal_type = nat_traversal_type;
-                                }
-                                Err(_) => {
-                                    error!("Failed to parse ip: {}", user.ip);
                                 }
                             }
-                        }
-                        // 判断用户列表是否发生变化
-                        if do_vecs_match(&new_users, &status.users) {
-                            status.users = new_users.clone();
-                            if let Err(e) = app_clone.emit("lers://vnt/users", new_users) {
-                                error!("Failed to emit users: {}", e);
+                            Err(e) => {
+                                error!("Failed to fresh user list: {}", e);
                             }
                         }
                     } else {
@@ -236,7 +205,7 @@ pub(crate) fn get_nat_traversal_type(app: tauri::AppHandle, vnt: Vnt) {
                     break;
                 }
             }
-            sleep(Duration::from_secs(60))
+            sleep(Duration::from_secs(300))
         }
         info!("get_nat_traversal_type thread stopped")
     });

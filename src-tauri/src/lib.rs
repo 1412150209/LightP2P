@@ -18,6 +18,7 @@ use tauri::{
     Manager,
 };
 use tauri_plugin_store::StoreExt;
+use crate::tools::users::fresh_user_list;
 
 mod errors;
 mod tools;
@@ -117,7 +118,8 @@ pub fn run() {
             get_running_status,
             get_virtual_ip,
             child_kill,
-            command_spawn
+            command_spawn,
+            fresh_user_list
         ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
