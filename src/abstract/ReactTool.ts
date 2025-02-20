@@ -61,3 +61,19 @@ export function useThrottle<T extends any[]>(
         }
     };
 }
+
+/**
+ * 比较两个版本号
+ * @param version1
+ * @param version2
+ */
+export function compareVersion(version1: string, version2: string) {
+    const arr1 = version1.split('.').map(e => Number(e))
+    const arr2 = version2.split('.').map(e => Number(e))
+    const length = Math.max(arr1.length, arr2.length)
+    for (let i = 0; i < length; i++) {
+        if ((arr1[i] || 0) > (arr2[i] || 0)) return 1
+        if ((arr1[i] || 0) < (arr2[i] || 0)) return -1
+    }
+    return 0
+}

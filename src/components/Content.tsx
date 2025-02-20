@@ -10,17 +10,17 @@ function ContentComponent() {
     const tabs = [
         {
             key: '1',
-            label: <p style={{userSelect: "none", marginTop: 0, marginBottom: 0}}>组网</p>,
+            label: <p style={{marginTop: 0, marginBottom: 0}}>组网</p>,
             children: <NetworkingPage/>
         },
         {
             key: '2',
-            label: <p style={{userSelect: "none", marginTop: 0, marginBottom: 0}}>工具</p>,
+            label: <p style={{marginTop: 0, marginBottom: 0}}>工具</p>,
             children: <ToolPage/>
         },
         {
             key: '3',
-            label: <p style={{userSelect: "none", marginTop: 0, marginBottom: 0}}>关于</p>,
+            label: <p style={{marginTop: 0, marginBottom: 0}}>关于</p>,
             children: <AboutPage/>
         },
     ]

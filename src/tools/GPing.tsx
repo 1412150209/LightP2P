@@ -29,6 +29,8 @@ export async function GpingSelect(modal: HookAPI, messageApi: MessageInstance, o
                 resolve(selected);
             },
             onCancel: () => resolve([]), // 取消时返回空数组
+            okText: "运行",
+            cancelText: "取消"
         });
     });
 }

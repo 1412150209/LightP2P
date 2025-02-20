@@ -3,6 +3,8 @@ import {Tool, ToolTag} from "../abstract/ToolControl.ts";
 import {ToolControllerItem} from "../components/ToolController.tsx";
 import {get_user_list} from "../abstract/VntControl.ts";
 import {GpingSelect} from "../tools/GPing.tsx";
+import {Updater} from "../tools/Updater.tsx";
+import {DownloadOutlined} from "@ant-design/icons";
 
 function ToolPage() {
     const [modal, modalHolder] = Modal.useModal()
@@ -13,7 +15,7 @@ function ToolPage() {
             name: "GPing",
             description: "GPing是一个用于测试网络延迟的工具",
             link: "https://github.com/orf/gping",
-            icon: <Avatar shape={"square"} size={"large"}>🚀</Avatar>,
+            icon: <Avatar shape={"square"}>🚀</Avatar>,
             tags: [ToolTag.Download, ToolTag.Button, ToolTag.Command, ToolTag.ArgsGet],
             download_url_position: {
                 "http://8.137.114.160:5244/d/local/LightP2P/tools/gping.exe": "./tool/gping.exe"
@@ -32,6 +34,18 @@ function ToolPage() {
                     return select
                 }
             },
+        },
+        {
+            name: "更新检测",
+            description: "检测当前是不是最新版本",
+            link: "",
+            icon: <Avatar shape={"square"} icon={<DownloadOutlined/>}/>,
+            tags: [ToolTag.Button],
+            callback: {
+                before: async () => {
+                    await Updater(modal, messageApi)
+                }
+            }
         }
     ]
 
@@ -40,7 +54,6 @@ function ToolPage() {
             {modalHolder}
             {messageHolder}
             <List
-                style={{userSelect: "none"}}
                 bordered
                 locale={{emptyText: "没有成员"}}
                 itemLayout={"horizontal"}

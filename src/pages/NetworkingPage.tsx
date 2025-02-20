@@ -326,7 +326,7 @@ function NetworkingPage() {
 
         return (
             <List
-                style={{userSelect: "none", marginLeft: "5vw"}}
+                style={{marginLeft: "5vw"}}
                 locale={{emptyText: "没有成员"}}
                 itemLayout={"horizontal"}
                 dataSource={users}

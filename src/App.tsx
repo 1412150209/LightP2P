@@ -1,6 +1,7 @@
 import {App as Ap, ConfigProvider, theme} from "antd";
 import HeaderComponent from "./components/Header.tsx";
 import ContentComponent from "./components/Content.tsx";
+import "./App.css"
 
 
 function App() {

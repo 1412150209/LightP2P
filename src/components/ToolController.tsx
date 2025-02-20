@@ -95,7 +95,7 @@ export function ToolControllerItem({tool}: { tool: Tool }) {
             {tool.icon}
             <Row>
                 <Space>
-                    <Typography.Link href={tool.link} target={"_blank"}>
+                    <Typography.Link href={tool.link ? tool.link : undefined} target={"_blank"}>
                         {tool.name}
                     </Typography.Link>
                     {ready ?

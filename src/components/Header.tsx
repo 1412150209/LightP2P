@@ -18,7 +18,7 @@ function HeaderComponent() {
             data-tauri-drag-region>
             <Flex style={{marginLeft: "8vw", marginRight: "5vw"}} align={"center"} justify={"space-between"}
                   data-tauri-drag-region>
-                <Typography.Text style={{userSelect: "none", fontSize: "5vw"}} data-tauri-drag-region>
+                <Typography.Text style={{fontSize: "5vw"}} data-tauri-drag-region>
                     Light P2P
                 </Typography.Text>
                 <Space align={"center"} style={{lineHeight: "10vh"}} data-tauri-drag-region>

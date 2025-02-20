@@ -49,7 +49,7 @@ pub(crate) fn fresh_user_list(
             let users = status.users.clone();
             match _fresh_user_list(vnt, users) {
                 Ok(new_users) => {
-                    if do_vecs_match(&new_users, &status.users) {
+                    if !do_vecs_match(&new_users, &status.users) {
                         status.users = new_users.clone();
                         if let Err(e) = app_handle.emit("lers://vnt/users", new_users) {
                             error!("Failed to emit users: {}", e);

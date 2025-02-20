@@ -184,12 +184,10 @@ pub(crate) fn get_nat_traversal_type(app: tauri::AppHandle, vnt: Vnt) {
                         let new_users = status.users.clone();
                         match _fresh_user_list(vnt.clone(), new_users) {
                             Ok(new_users) => {
-                                // 判断用户列表是否发生变化
-                                if do_vecs_match(&new_users, &status.users) {
-                                    status.users = new_users.clone();
-                                    if let Err(e) = app_clone.emit("lers://vnt/users", new_users) {
-                                        error!("Failed to emit users: {}", e);
-                                    }
+                                // 不管是否更新，都更新一下
+                                status.users = new_users.clone();
+                                if let Err(e) = app_clone.emit("lers://vnt/users", new_users) {
+                                    error!("Failed to emit users: {}", e);
                                 }
                             }
                             Err(e) => {
