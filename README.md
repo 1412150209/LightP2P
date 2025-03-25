@@ -1,7 +1,10 @@
-# Tauri + React + Typescript
+# LightP2P
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+基于[vnt](https://github.com/vnt-dev/vnt)项目，使用Rust+Tauri+React开发的虚拟局域网组网工具
 
-## Recommended IDE Setup
+## 技术栈
+- Tauri
+- React
+- Rust
+- Antd
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
