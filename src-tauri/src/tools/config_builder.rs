@@ -20,7 +20,7 @@ impl Default for Config {
             token: "lers1".to_string(),
             device_id: uuid::Uuid::new_v4().to_string(),
             name: whoami::devicename(),
-            server_address_str: "vnt.lers.site:29872".to_string(),
+            server_address_str: String::new(),
             stun_server: None,
         }
     }
